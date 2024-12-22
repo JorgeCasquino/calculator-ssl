@@ -4,7 +4,7 @@ import KPICard from './KPICard';
 import  ParetoChart from '../tools/sixsigma/ParetoChart';
 import ControlChart from '../tools/sixsigma/ControlChart';
 import { Alert } from '../../components/ui/alert';
-
+import { AlertCircle, Percent, Settings } from 'react-feather';
 const Dashboard = () => {
   const { kpiData, loading, error } = useKPI();
 
