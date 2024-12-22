@@ -13,19 +13,46 @@ const Register = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    // Validaciones locales
+    if (!userData.username || !userData.email || !userData.password) {
+      setError('Todos los campos son requeridos');
+      setLoading(false);
+      return;
+    }
+
     if (userData.password !== userData.confirmPassword) {
       setError('Las contraseñas no coinciden');
+      setLoading(false);
       return;
     }
 
     try {
-      await register(userData);
+      console.log('Enviando datos:', {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password
+      });
+
+      const response = await register({
+        username: userData.username,
+        email: userData.email,
+        password: userData.password
+      });
+
+      console.log('Respuesta:', response);
       navigate('/login');
     } catch (err) {
-      setError('Error al registrar usuario.');
+      console.error('Error en registro:', err);
+      setError(err.response?.data?.error || 'Error al registrar usuario. Por favor, intenta de nuevo.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,9 +133,12 @@ const Register = () => {
 
             <button
               type="submit"
-              className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              disabled={loading}
+              className={`w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
-              Registrarse
+              {loading ? 'Registrando...' : 'Registrarse'}
             </button>
           </form>
         </div>
@@ -116,4 +146,5 @@ const Register = () => {
     </div>
   );
 };
+
 export default Register;

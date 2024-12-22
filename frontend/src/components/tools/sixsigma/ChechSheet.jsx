@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card,  CardHeader, CardTitle } from '../../ui/card';
 
 const CheckSheet = () => {
   const [items, setItems] = useState([]);

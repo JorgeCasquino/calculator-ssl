@@ -1,6 +1,15 @@
+// src/components/tools/sixsigma/ToolsContainer.jsx
 import React from 'react';
 import { useApp } from '../../../hooks/useApp';
-import { Card, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardHeader, CardTitle } from '../../../components/ui/card';
+
+import CauseEffect from './CauseEffect';
+import ParetoChart from './ParetoChart';
+import ControlChart from './ControlChart';
+import Histogram from './Histogram';
+import ScatterPlot from './ScatterPlot';
+import CheckSheet from './CheckSheet';
+import FlowChart from './FlowChart';
 
 const ToolsContainer = () => {
   const { currentTool, setCurrentTool } = useApp();
@@ -45,7 +54,7 @@ const ToolsContainer = () => {
 
   const CurrentToolComponent = tools.find(
     (tool) => tool.id === currentTool
-  )?.component;
+  )?.component || tools[0].component;
 
   return (
     <div className="space-y-6">
@@ -85,4 +94,4 @@ export {
   CheckSheet,
   FlowChart,
   ToolsContainer,
-};  
+};

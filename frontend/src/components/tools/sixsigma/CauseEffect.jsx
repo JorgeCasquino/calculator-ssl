@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '../../ui/card';
 
 const CauseEffect = () => {
   const [causes, setCauses] = useState({
