@@ -10,6 +10,7 @@ import Dashboard from './components/dashboard/Dashboard';
 import { ToolsContainer } from './components/tools/sixsigma/ToolsContainer';
 import FileUpload from './components/data/FileUpload';
 import DefectsContainer from './components/defects/DefectsContainer';
+import ReportsContainer from './components/reports/ReportsContainer';
 
 const App = () => {
   return (
@@ -25,7 +26,7 @@ const App = () => {
                 <Route index element={<Dashboard />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="tools" element={<ToolsContainer />} />
-                <Route path="reports" element={<div>Reportes</div>} />
+                <Route path="reports" element={<ReportsContainer />} />
                 <Route path="defects"  element={<DefectsContainer />} />
                 <Route path="upload" element={<FileUpload />} />
                 <Route path="settings" element={<div>Configuración</div>} />

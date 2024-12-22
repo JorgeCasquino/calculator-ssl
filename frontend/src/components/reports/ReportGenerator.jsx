@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useReports } from '../../hooks/useReports';
-import { FileText, Download } from 'lucide-react';
+import { FileText } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Select } from '../../components/ui/select';
+import { Input } from '../../components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent
+} from '../../components/ui/card';
 
 const ReportGenerator = () => {
-  const { generateReport, downloadReport, loading } = useReports();
+  const { generateReport, loading } = useReports();
   const [reportConfig, setReportConfig] = useState({
     type: 'defects',
     format: 'pdf',
@@ -44,18 +46,13 @@ const ReportGenerator = () => {
                 </label>
                 <Select
                   value={reportConfig.type}
-                  onValueChange={(value) =>
-                    setReportConfig({ ...reportConfig, type: value })
+                  onChange={(e) =>
+                    setReportConfig({ ...reportConfig, type: e.target.value })
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="defects">Defectos</SelectItem>
-                    <SelectItem value="kpi">KPIs</SelectItem>
-                    <SelectItem value="process">Procesos</SelectItem>
-                  </SelectContent>
+                  <option value="defects">Defectos</option>
+                  <option value="kpi">KPIs</option>
+                  <option value="process">Procesos</option>
                 </Select>
               </div>
 
@@ -65,17 +62,12 @@ const ReportGenerator = () => {
                 </label>
                 <Select
                   value={reportConfig.format}
-                  onValueChange={(value) =>
-                    setReportConfig({ ...reportConfig, format: value })
+                  onChange={(e) =>
+                    setReportConfig({ ...reportConfig, format: e.target.value })
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione formato" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="excel">Excel</SelectItem>
-                  </SelectContent>
+                  <option value="pdf">PDF</option>
+                  <option value="excel">Excel</option>
                 </Select>
               </div>
 
@@ -83,9 +75,8 @@ const ReportGenerator = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Fecha Inicio
                 </label>
-                <input
+                <Input
                   type="date"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                   value={reportConfig.startDate}
                   onChange={(e) =>
                     setReportConfig({ ...reportConfig, startDate: e.target.value })
@@ -97,9 +88,8 @@ const ReportGenerator = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Fecha Fin
                 </label>
-                <input
+                <Input
                   type="date"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                   value={reportConfig.endDate}
                   onChange={(e) =>
                     setReportConfig({ ...reportConfig, endDate: e.target.value })
@@ -124,3 +114,5 @@ const ReportGenerator = () => {
     </div>
   );
 };
+
+export default ReportGenerator;

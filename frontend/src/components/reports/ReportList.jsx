@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
 import { useReports } from '../../hooks/useReports';
 import { Download, FileText, File, Loader2 } from 'lucide-react';
+import { Button } from '../ui/button';
 import {
   Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
+  TableBody,
   TableRow,
-} from '@/components/ui/table';
+  TableHead,
+  TableCell
+} from '../ui/table';
+import { Card, CardContent } from '../ui/card';
 
 const ReportList = () => {
   const { reports, fetchReports, downloadReport, loading } = useReports();
@@ -18,7 +20,7 @@ const ReportList = () => {
   }, []);
 
   const getFormatIcon = (format) => {
-    switch (format.toLowerCase()) {
+    switch (format?.toLowerCase()) {
       case 'pdf':
         return <FileText className="h-4 w-4 text-red-500" />;
       case 'excel':
@@ -42,7 +44,7 @@ const ReportList = () => {
       </div>
 
       <Card>
-        <CardContent>
+        <CardContent className="pt-6">
           {loading ? (
             <div className="flex h-40 items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
@@ -103,3 +105,5 @@ const ReportList = () => {
     </div>
   );
 };
+
+export default ReportList;
