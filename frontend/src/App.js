@@ -8,6 +8,7 @@ import Register from './components/auth/Register';
 import Layout from './components/Layout/Layout';
 import Dashboard from './components/dashboard/Dashboard';
 import { ToolsContainer } from './components/tools/sixsigma/ToolsContainer';
+import FileUpload from './components/data/FileUpload';
 
 const App = () => {
   return (
@@ -21,10 +22,11 @@ const App = () => {
             <Route path="/" element={<PrivateRoute />}>
               <Route element={<Layout />}>
                 <Route index element={<Dashboard />} />
-                <Route path="dashboard" element={<Dashboard />} /> {/* Add this line */}
+                <Route path="dashboard" element={<Dashboard />} />
                 <Route path="tools" element={<ToolsContainer />} />
                 <Route path="reports" element={<div>Reportes</div>} />
                 <Route path="defects" element={<div>Registro de Defectos</div>} />
+                <Route path="upload" element={<FileUpload />} />
                 <Route path="settings" element={<div>Configuración</div>} />
               </Route>
             </Route>

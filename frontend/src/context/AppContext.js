@@ -6,7 +6,12 @@ export const AppProvider = ({ children }) => {
   const [state, setState] = useState({
     sidebarOpen: true,
     currentTool: null,
-    theme: 'light'
+    theme: 'light',
+    uploadStatus: {
+      loading: false,
+      error: null,
+      success: null
+    }
   });
 
   const toggleSidebar = () => {
@@ -23,10 +28,18 @@ export const AppProvider = ({ children }) => {
     }));
   };
 
+  const setUploadStatus = (status) => {
+    setState(prevState => ({
+      ...prevState,
+      uploadStatus: { ...prevState.uploadStatus, ...status }
+    }));
+  };
+
   const value = {
     ...state,
     toggleSidebar,
     setCurrentTool,
+    setUploadStatus,
     setState
   };
 
