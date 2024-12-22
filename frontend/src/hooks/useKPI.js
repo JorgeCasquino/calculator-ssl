@@ -1,6 +1,5 @@
-// src/hooks/useKPI.js
 import { useState, useEffect } from 'react';
-import api from '../components/services/Api';
+import api from '../components/services/Api'; // Asegúrate de que la ruta sea correcta
 
 export const useKPI = () => {
     const [kpiData, setKpiData] = useState(null);
@@ -14,11 +13,17 @@ export const useKPI = () => {
 
             // Realizar todas las peticiones en paralelo
             const [dashboardRes, paretoRes, controlChartRes, histogramRes] = await Promise.all([
-                api.get('/api/kpi/dashboard'),
-                api.get('/api/kpi/pareto'),
-                api.get('/api/kpi/control-chart'),
-                api.get('/api/kpi/histogram')
+                api.get('/kpi/dashboard'),
+                api.get('/kpi/pareto'),
+                api.get('/kpi/control-chart'),
+                api.get('/kpi/histogram')
             ]);
+
+            // Logs de depuración
+            console.log('Dashboard Response:', dashboardRes.data);
+            console.log('Pareto Response:', paretoRes.data);
+            console.log('Control Chart Response:', controlChartRes.data);
+            console.log('Histogram Response:', histogramRes.data);
 
             setKpiData({
                 summary: dashboardRes.data.summary,
@@ -36,21 +41,9 @@ export const useKPI = () => {
         }
     };
 
-    // Cargar datos al montar el componente
     useEffect(() => {
         fetchData();
     }, []);
 
-    // Actualizar datos cada 5 minutos
-    useEffect(() => {
-        const interval = setInterval(fetchData, 5 * 60 * 1000);
-        return () => clearInterval(interval);
-    }, []);
-
-    return {
-        kpiData,
-        loading,
-        error,
-        refreshData: fetchData
-    };
+    return { kpiData, loading, error, refetch: fetchData };
 };

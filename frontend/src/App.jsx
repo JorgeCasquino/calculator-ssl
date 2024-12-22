@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -18,7 +17,7 @@ const App = () => {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/" element={<PrivateRoute />}>
+            <Route path="/dashboard" element={<PrivateRoute />}>
               <Route element={<Layout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="tools" element={<ToolsContainer />} />

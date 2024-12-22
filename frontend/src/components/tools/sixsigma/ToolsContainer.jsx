@@ -12,7 +12,7 @@ import CheckSheet from './CheckSheet';
 import FlowChart from './FlowChart';
 
 const ToolsContainer = () => {
-  const { currentTool, setCurrentTool } = useApp();
+  const { currentTool, setCurrentTool, sidebarOpen } = useApp();
 
   const tools = [
     {
@@ -57,30 +57,32 @@ const ToolsContainer = () => {
   )?.component || tools[0].component;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Herramientas Six Sigma</h1>
+    <div className={`min-h-screen bg-gray-100 p-6 ${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900">Herramientas Six Sigma</h1>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {tools.map((tool) => (
-          <Card
-            key={tool.id}
-            className={`cursor-pointer hover:shadow-lg ${
-              currentTool === tool.id ? 'ring-2 ring-blue-500' : ''
-            }`}
-            onClick={() => setCurrentTool(tool.id)}
-          >
-            <CardHeader>
-              <CardTitle>{tool.title}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
-
-      {CurrentToolComponent && (
-        <div className="mt-6 rounded-lg bg-white p-6 shadow">
-          <CurrentToolComponent />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {tools.map((tool) => (
+            <Card
+              key={tool.id}
+              className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
+                currentTool === tool.id ? 'ring-2 ring-blue-500' : ''
+              }`}
+              onClick={() => setCurrentTool(tool.id)}
+            >
+              <CardHeader>
+                <CardTitle>{tool.title}</CardTitle>
+              </CardHeader>
+            </Card>
+          ))}
         </div>
-      )}
+
+        {CurrentToolComponent && (
+          <div className="mt-6 rounded-lg bg-white p-6 shadow">
+            <CurrentToolComponent />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

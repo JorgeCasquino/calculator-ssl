@@ -18,7 +18,7 @@ const Login = () => {
     try {
       const response = await login(credentials);
       console.log('Login exitoso:', response);
-      navigate('/dashboard'); // Cambiado de '/' a '/dashboard'
+      navigate('/'); // Cambiado de '/' a '/dashboard'
     } catch (err) {
       console.error('Error en login:', err);
       setError(
