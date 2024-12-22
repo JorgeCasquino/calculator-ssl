@@ -1,10 +1,36 @@
 import React, { useState } from 'react';
 import { useDefects } from '../../hooks/useDefects';
-import { Table, TableHeader, TableRow, TableCell } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableRow, TableCell } from '../../components/ui/table';
+import { Button } from '../../components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
 import DefectForm from './DefectForm';
-import DeleteConfirmDialog from '../shared/DeleteConfirmDialog';
+
+const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, title, message }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <p className="mb-4 text-gray-600">{message}</p>
+        <div className="flex justify-end space-x-2">
+          <button
+            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            onClick={onClose}
+          >
+            Cancelar
+          </button>
+          <button
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            onClick={onConfirm}
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const DefectList = () => {
   const { defects, loading, deleteDefect } = useDefects();
@@ -96,3 +122,5 @@ const DefectList = () => {
     </div>
   );
 };
+
+export default DefectList;

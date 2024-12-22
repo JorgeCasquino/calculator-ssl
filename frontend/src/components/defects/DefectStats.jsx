@@ -8,9 +8,11 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  LineChart,
+  Line
 } from 'recharts';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 
 const DefectStats = () => {
   const { defectStats, loading } = useDefects();
@@ -119,3 +121,5 @@ const DefectStats = () => {
     </div>
   );
 };
+
+export default DefectStats;

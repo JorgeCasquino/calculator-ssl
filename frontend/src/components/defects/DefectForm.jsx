@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useDefects } from '../../hooks/useDefects';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Textarea } from '../../components/ui/textarea';
 
 const DefectForm = ({ defect, onClose }) => {
   const { createDefect, updateDefect } = useDefects();
@@ -43,23 +37,21 @@ const DefectForm = ({ defect, onClose }) => {
     }
   };
 
+  // Modal base simple
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {defect ? 'Editar Defecto' : 'Nuevo Defecto'}
-          </DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h2 className="text-lg font-semibold mb-4">
+          {defect ? 'Editar Defecto' : 'Nuevo Defecto'}
+        </h2>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="type">Tipo de Defecto</Label>
             <Input
               id="type"
               value={formData.type}
-              onChange={(e) =>
-                setFormData({ ...formData, type: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
               required
             />
           </div>
@@ -69,9 +61,7 @@ const DefectForm = ({ defect, onClose }) => {
             <Input
               id="process"
               value={formData.process}
-              onChange={(e) =>
-                setFormData({ ...formData, process: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, process: e.target.value })}
               required
             />
           </div>
@@ -82,9 +72,7 @@ const DefectForm = ({ defect, onClose }) => {
               id="date"
               type="date"
               value={formData.date}
-              onChange={(e) =>
-                setFormData({ ...formData, date: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               required
             />
           </div>
@@ -92,26 +80,30 @@ const DefectForm = ({ defect, onClose }) => {
           <div>
             <Label htmlFor="description">Descripción</Label>
             <Textarea
-             id="description"
-             value={formData.description}
-             onChange={(e) =>
-               setFormData({ ...formData, description: e.target.value })
-             }
-             rows={4}
-             className="resize-none"
-           />
-         </div>
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={4}
+              className="resize-none"
+            />
+          </div>
 
-         <div className="flex justify-end space-x-2">
-           <Button variant="outline" type="button" onClick={onClose}>
-             Cancelar
-           </Button>
-           <Button type="submit">
-             {defect ? 'Actualizar' : 'Guardar'}
-           </Button>
-         </div>
-       </form>
-     </DialogContent>
-   </Dialog>
- );
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit">
+              {defect ? 'Actualizar' : 'Guardar'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 };
+
+export default DefectForm;
