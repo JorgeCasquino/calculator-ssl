@@ -29,3 +29,4 @@ const ScatterPlot = ({ data, xLabel, yLabel }) => {
     </div>
   );
 };
+export default ScatterPlot;

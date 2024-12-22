@@ -29,3 +29,4 @@ const Histogram = ({ data }) => {
     </div>
   );
 };
+export default Histogram;

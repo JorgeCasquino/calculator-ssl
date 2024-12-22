@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Alert } from '@/components/ui/alert';
+import { Alert } from '../../components/ui/alert';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -116,3 +116,4 @@ const Register = () => {
     </div>
   );
 };
+export default Register;

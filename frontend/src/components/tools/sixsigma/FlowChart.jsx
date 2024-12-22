@@ -89,3 +89,4 @@ const FlowChart = () => {
     </div>
   );
 };
+export default FlowChart;

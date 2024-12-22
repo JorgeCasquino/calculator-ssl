@@ -1,8 +1,9 @@
 import React from 'react';
 import { useKPI } from '../../hooks/useKPI';
 import KPICard from './KPICard';
-import { ParetoChart, ControlChart } from '../tools/sixsigma';
-import { Alert } from '@/components/ui/alert';
+import  ParetoChart from '../tools/sixsigma/ParetoChart';
+import ControlChart from '../tools/sixsigma/ControlChart';
+import { Alert } from '../../components/ui/alert';
 
 const Dashboard = () => {
   const { kpiData, loading, error } = useKPI();
@@ -85,3 +86,4 @@ const Dashboard = () => {
     </div>
   );
 };
+export default Dashboard;

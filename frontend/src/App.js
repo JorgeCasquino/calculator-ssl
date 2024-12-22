@@ -5,7 +5,7 @@ import { AppProvider } from './context/AppContext';
 import PrivateRoute from './components/auth/PrivateRoute';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
-import Layout from './components/layout/Layout';
+import Layout from './components/Layout/Layout';
 import Dashboard from './components/dashboard/Dashboard';
 
 const App = () => {

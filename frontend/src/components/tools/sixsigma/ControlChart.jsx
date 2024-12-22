@@ -36,4 +36,4 @@ const ControlChart = ({ data }) => {
   );
 };
 
-export { Dashboard, KPICard, ParetoChart, ControlChart };
+export default ControlChart;

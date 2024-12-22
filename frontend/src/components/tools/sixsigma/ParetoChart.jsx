@@ -37,3 +37,4 @@ const ParetoChart = ({ data }) => {
     </div>
   );
 };
+export default ParetoChart;

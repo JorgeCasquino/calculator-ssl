@@ -82,4 +82,4 @@ const Sidebar = () => {
   );
 };
 
-export { Layout, Navbar, Sidebar };
+export default Sidebar;

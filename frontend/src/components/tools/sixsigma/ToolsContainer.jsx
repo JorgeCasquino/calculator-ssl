@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../../hooks/useApp';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '../../components/ui/card';
 
 const ToolsContainer = () => {
   const { currentTool, setCurrentTool } = useApp();
@@ -85,4 +85,4 @@ export {
   CheckSheet,
   FlowChart,
   ToolsContainer,
-};
+};  

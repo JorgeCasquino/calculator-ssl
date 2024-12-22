@@ -31,3 +31,4 @@ const KPICard = ({ title, value, icon, change }) => {
     </div>
   );
 };
+export default KPICard;

@@ -94,3 +94,4 @@ const CheckSheet = () => {
     </div>
   );
 };
+export default CheckSheet;

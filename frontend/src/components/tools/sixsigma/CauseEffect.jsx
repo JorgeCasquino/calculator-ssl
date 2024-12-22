@@ -88,3 +88,4 @@ const CauseEffect = () => {
     </div>
   );
 };
+export default CauseEffect;
