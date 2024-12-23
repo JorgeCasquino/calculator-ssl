@@ -1,47 +1,36 @@
+// kpiController.js
 const pool = require('../config/database');
 
 const kpiController = {
     getDashboardData: async (req, res) => {
         try {
-            // Obtener estadísticas generales
-            const [defectStats] = await pool.execute(`
+            // Obtener estadísticas de producción y variedades
+            const [stats] = await pool.execute(`
                 SELECT 
-                    COUNT(*) as total_defects,
-                    COUNT(DISTINCT process) as affected_processes,
-                    COUNT(DISTINCT type) as defect_types
-                FROM defects
-                WHERE date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                    COUNT(DISTINCT p.parcel_id) as total_parcels,
+                    AVG(p.harvest_amount) as avg_production,
+                    COUNT(DISTINCT v.id) as total_varieties
+                FROM production p
+                LEFT JOIN varieties v ON p.variety_id = v.id
             `);
 
-            // Obtener tendencias mensuales
+            // Tendencias por mes
             const [monthlyTrends] = await pool.execute(`
                 SELECT 
-                    DATE_FORMAT(date, '%Y-%m') as month,
+                    harvest_month,
+                    AVG(harvest_amount) as average_production,
                     COUNT(*) as count
-                FROM defects
-                GROUP BY DATE_FORMAT(date, '%Y-%m')
-                ORDER BY month DESC
-                LIMIT 12
-            `);
-
-            // Obtener impacto por proceso
-            const [processImpact] = await pool.execute(`
-                SELECT 
-                    process,
-                    COUNT(*) as defect_count,
-                    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM defects), 2) as percentage
-                FROM defects
-                GROUP BY process
-                ORDER BY defect_count DESC
+                FROM production
+                GROUP BY harvest_month
+                ORDER BY FIELD(harvest_month, 
+                    'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 
+                    'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 
+                    'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE')
             `);
 
             res.json({
-                summary: {
-                    ...defectStats[0],
-                    defect_rate: calculateDefectRate(defectStats[0].total_defects)
-                },
-                monthlyTrends,
-                processImpact
+                summary: stats[0],
+                monthlyTrends
             });
         } catch (error) {
             console.error('Error in getDashboardData:', error);
@@ -51,25 +40,37 @@ const kpiController = {
 
     getParetoData: async (req, res) => {
         try {
-            const [results] = await pool.execute(`
+            const [rows] = await pool.execute(`
                 SELECT 
-                    type,
+                    CASE 
+                        WHEN frost_affected = 1 THEN 'Heladas'
+                        WHEN seed_shortage = 1 THEN 'Falta de Semilla'
+                        WHEN water_scarcity = 1 THEN 'Escasez de Agua'
+                        WHEN pest_problems = 1 THEN 'Plagas'
+                        WHEN disease_problems = 1 THEN 'Enfermedades'
+                        WHEN drought_problems = 1 THEN 'Sequía'
+                        WHEN hail_damage = 1 THEN 'Granizada'
+                        ELSE 'Otros'
+                    END as type,
                     COUNT(*) as count
-                FROM defects
+                FROM crop_limitations
                 GROUP BY type
+                HAVING type != 'Otros'
                 ORDER BY count DESC
             `);
 
-            const total = results.reduce((sum, item) => sum + item.count, 0);
-            let accumulative = 0;
+            // Calcular porcentajes acumulados
+            let total = 0;
+            let accumulated = 0;
+            total = rows.reduce((sum, row) => sum + row.count, 0);
 
-            const paretoData = results.map(item => {
-                accumulative += item.count;
+            const paretoData = rows.map(row => {
+                accumulated += row.count;
                 return {
-                    type: item.type,
-                    count: item.count,
-                    percentage: (item.count * 100 / total).toFixed(2),
-                    accumulative_percentage: (accumulative * 100 / total).toFixed(2)
+                    type: row.type,
+                    count: row.count,
+                    percentage: (row.count * 100 / total).toFixed(2),
+                    accumulative_percentage: (accumulated * 100 / total).toFixed(2)
                 };
             });
 
@@ -84,27 +85,30 @@ const kpiController = {
         try {
             const [results] = await pool.execute(`
                 SELECT 
-                    DATE(date) as date,
-                    COUNT(*) as value
-                FROM defects
-                GROUP BY DATE(date)
-                ORDER BY date
+                    harvest_month as date,
+                    AVG(harvest_amount) as value
+                FROM production
+                GROUP BY harvest_month
+                ORDER BY FIELD(harvest_month, 
+                    'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 
+                    'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 
+                    'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE')
             `);
 
-            const values = results.map(r => r.value);
-            const mean = calculateMean(values);
-            const stdDev = calculateStandardDeviation(values);
+            const values = results.map(r => parseFloat(r.value));
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const stdDev = Math.sqrt(
+                values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length
+            );
 
-            const controlData = {
+            res.json({
                 values: results,
                 limits: {
                     ucl: mean + (3 * stdDev),
                     lcl: Math.max(0, mean - (3 * stdDev)),
                     mean
                 }
-            };
-
-            res.json(controlData);
+            });
         } catch (error) {
             console.error('Error in getControlChartData:', error);
             res.status(500).json({ error: 'Error al obtener datos del gráfico de control' });
@@ -114,13 +118,30 @@ const kpiController = {
     getHistogramData: async (req, res) => {
         try {
             const [results] = await pool.execute(`
-                SELECT COUNT(*) as count
-                FROM defects
-                GROUP BY DATE(date)
+                SELECT harvest_amount as value
+                FROM production
+                WHERE harvest_amount IS NOT NULL
             `);
 
-            const values = results.map(r => r.count);
-            const histogramData = generateHistogramData(values);
+            const values = results.map(r => parseFloat(r.value));
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const binCount = Math.ceil(Math.sqrt(values.length));
+            const binWidth = (max - min) / binCount;
+            
+            const bins = Array(binCount).fill(0);
+            values.forEach(value => {
+                const binIndex = Math.min(
+                    Math.floor((value - min) / binWidth),
+                    binCount - 1
+                );
+                bins[binIndex]++;
+            });
+
+            const histogramData = bins.map((frequency, index) => ({
+                range: `${(min + index * binWidth).toFixed(1)}-${(min + (index + 1) * binWidth).toFixed(1)}`,
+                frequency
+            }));
 
             res.json(histogramData);
         } catch (error) {
@@ -133,66 +154,20 @@ const kpiController = {
         try {
             const [results] = await pool.execute(`
                 SELECT 
-                    d1.date as x_date,
-                    COUNT(d1.id) as x_value,
-                    d2.date as y_date,
-                    COUNT(d2.id) as y_value
-                FROM defects d1
-                JOIN defects d2 ON DATE(d1.date) = DATE(d2.date)
-                GROUP BY DATE(d1.date)
-                ORDER BY d1.date
+                    p.harvest_amount as x,
+                    v.yield_rating as y
+                FROM production p
+                JOIN varieties v ON p.variety_id = v.id
+                WHERE p.harvest_amount IS NOT NULL 
+                AND v.yield_rating IS NOT NULL
             `);
 
-            const scatterData = results.map(row => ({
-                x: row.x_value,
-                y: row.y_value,
-                date: row.x_date
-            }));
-
-            res.json(scatterData);
+            res.json(results);
         } catch (error) {
             console.error('Error in getScatterPlotData:', error);
             res.status(500).json({ error: 'Error al obtener datos del diagrama de dispersión' });
         }
     }
 };
-
-// Funciones auxiliares
-function calculateDefectRate(totalDefects) {
-    // Asumiendo una base de producción de 1000 unidades
-    return (totalDefects * 100 / 1000).toFixed(2);
-}
-
-function calculateMean(values) {
-    return values.reduce((a, b) => a + b, 0) / values.length;
-}
-
-function calculateStandardDeviation(values) {
-    const mean = calculateMean(values);
-    const squareDiffs = values.map(value => Math.pow(value - mean, 2));
-    const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / values.length;
-    return Math.sqrt(avgSquareDiff);
-}
-
-function generateHistogramData(values) {
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const binCount = Math.ceil(Math.sqrt(values.length));
-    const binWidth = (max - min) / binCount;
-    
-    const bins = Array(binCount).fill(0);
-    values.forEach(value => {
-        const binIndex = Math.min(
-            Math.floor((value - min) / binWidth),
-            binCount - 1
-        );
-        bins[binIndex]++;
-    });
-
-    return bins.map((frequency, index) => ({
-        range: `${(min + index * binWidth).toFixed(1)}-${(min + (index + 1) * binWidth).toFixed(1)}`,
-        frequency
-    }));
-}
 
 module.exports = kpiController;

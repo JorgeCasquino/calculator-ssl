@@ -1,6 +1,6 @@
-// src/components/tools/sixsigma/ToolsContainer.jsx
 import React from 'react';
 import { useApp } from '../../../hooks/useApp';
+import { useDataAnalysis } from '../../../hooks/useDataAnalysis'; // Nuevo import
 import { Card, CardHeader, CardTitle } from '../../../components/ui/card';
 
 import CauseEffect from './CauseEffect';
@@ -13,6 +13,7 @@ import FlowChart from './FlowChart';
 
 const ToolsContainer = () => {
   const { currentTool, setCurrentTool, sidebarOpen } = useApp();
+  const { analysisData, loading, error } = useDataAnalysis(); // Nuevo hook
 
   const tools = [
     {
@@ -24,21 +25,25 @@ const ToolsContainer = () => {
       id: 'pareto',
       title: 'Diagrama de Pareto',
       component: ParetoChart,
+      data: analysisData?.paretoData
     },
     {
       id: 'control-chart',
       title: 'Gráfico de Control',
       component: ControlChart,
+      data: analysisData?.controlData
     },
     {
       id: 'histogram',
       title: 'Histograma',
       component: Histogram,
+      data: analysisData?.histogramData
     },
     {
       id: 'scatter-plot',
       title: 'Diagrama de Dispersión',
       component: ScatterPlot,
+      data: analysisData?.scatterData
     },
     {
       id: 'check-sheet',
@@ -52,12 +57,14 @@ const ToolsContainer = () => {
     },
   ];
 
-  const CurrentToolComponent = tools.find(
-    (tool) => tool.id === currentTool
-  )?.component || tools[0].component;
+  const selectedTool = tools.find((tool) => tool.id === currentTool);
+  const CurrentToolComponent = selectedTool?.component;
+
+  if (loading) return <div>Cargando datos...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className={`min-h-screen bg-gray-100 p-6 ${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
+    <div className={`min-h-screen bg-gray-100 p-6 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">Herramientas Six Sigma</h1>
 
@@ -65,9 +72,7 @@ const ToolsContainer = () => {
           {tools.map((tool) => (
             <Card
               key={tool.id}
-              className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                currentTool === tool.id ? 'ring-2 ring-blue-500' : ''
-              }`}
+              className={`cursor-pointer ${currentTool === tool.id ? 'ring-2 ring-blue-500' : ''}`}
               onClick={() => setCurrentTool(tool.id)}
             >
               <CardHeader>
@@ -79,7 +84,7 @@ const ToolsContainer = () => {
 
         {CurrentToolComponent && (
           <div className="mt-6 rounded-lg bg-white p-6 shadow">
-            <CurrentToolComponent />
+            <CurrentToolComponent data={selectedTool?.data} />
           </div>
         )}
       </div>
