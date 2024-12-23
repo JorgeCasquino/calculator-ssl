@@ -1,7 +1,6 @@
-// FileUpload.jsx
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Upload, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { Alert } from '../ui/alert';
 import api from '../services/Api';
 
@@ -12,6 +11,7 @@ const FileUpload = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [uploadHistory, setUploadHistory] = useState([]);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     fetchUploadHistory();
@@ -37,8 +37,8 @@ const FileUpload = () => {
     }
 
     // Verificar si es el archivo correcto
-    if (selectedFile.name !== 'DatosDepurados.csv') {
-      setError('Por favor seleccione el archivo DatosDepurados.csv');
+    if (selectedFile.name !== 'data.csv') {
+      setError('Por favor seleccione el archivo data.csv');
       return;
     }
 
@@ -58,16 +58,21 @@ const FileUpload = () => {
     try {
       setLoading(true);
       setError(null);
-      
+      setProgress(0);
+
       const response = await api.post('/upload/csv', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setProgress(percentCompleted);
         },
       });
 
       setSuccess('Archivo procesado correctamente');
       await fetchUploadHistory();
-      
+
       // Limpiar el formulario
       setFile(null);
       const fileInput = document.getElementById('file-input');
@@ -101,7 +106,7 @@ const FileUpload = () => {
                     {' '}o arrastra y suelta aquí
                   </div>
                   <p className="text-xs text-gray-500">
-                    Solo se permite el archivo: DatosDepurados.csv
+                    Solo se permite el archivo: data.csv
                   </p>
                 </div>
                 <input
@@ -145,6 +150,12 @@ const FileUpload = () => {
                 <CheckCircle className="h-4 w-4" />
                 <span>{success}</span>
               </Alert>
+            )}
+
+            {loading && (
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
+              </div>
             )}
           </div>
         </div>

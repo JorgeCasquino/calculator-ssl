@@ -16,8 +16,8 @@ const fileFilter = (req, file, cb) => {
   }
 
   // Validar que sea el archivo correcto
-  if (file.originalname !== 'DatosDepurados.csv') {
-    return cb(new Error('Solo se permite el archivo DatosDepurados.csv'), false);
+  if (file.originalname !== 'data.csv') {
+    return cb(new Error('Solo se permite el archivo data.csv'), false);
   }
 
   cb(null, true);
@@ -27,7 +27,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB
+    fileSize: 100 * 1024 * 1024 // 100MB
   }
 }).single('file');
 

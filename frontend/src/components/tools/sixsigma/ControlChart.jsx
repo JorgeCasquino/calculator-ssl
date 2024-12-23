@@ -11,6 +11,10 @@ import {
 } from 'recharts';
 
 const ControlChart = ({ data }) => {
+  if (!data || !data.values || !data.limits) {
+    return <div>No hay datos disponibles</div>;
+  }
+
   const { values, limits } = data;
 
   return (
@@ -21,9 +25,15 @@ const ControlChart = ({ data }) => {
         <YAxis />
         <Tooltip />
         <Legend />
-        <ReferenceLine y={limits.ucl} stroke="red" label="UCL" />
-        <ReferenceLine y={limits.mean} stroke="green" label="Mean" />
-        <ReferenceLine y={limits.lcl} stroke="red" label="LCL" />
+        {limits.ucl !== undefined && (
+          <ReferenceLine y={limits.ucl} stroke="red" label="UCL" />
+        )}
+        {limits.mean !== undefined && (
+          <ReferenceLine y={limits.mean} stroke="green" label="Mean" />
+        )}
+        {limits.lcl !== undefined && (
+          <ReferenceLine y={limits.lcl} stroke="red" label="LCL" />
+        )}
         <Line
           type="monotone"
           dataKey="value"
