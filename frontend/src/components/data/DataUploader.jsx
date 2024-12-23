@@ -10,28 +10,73 @@ import {
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const DataUploader = () => {
   const { uploadFile, loading, progress } = useUpload();
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [selectedType, setSelectedType] = useState('');
+
+  const fileTypes = [
+    { 
+      id: 'variedades', 
+      label: 'Variedades', 
+      files: ['VariedadMejoradas.csv', 'VariedadNativas.csv'],
+      description: 'Datos de variedades mejoradas y nativas'
+    },
+    { 
+      id: 'produccion', 
+      label: 'Producción', 
+      files: ['EstimacionesCosecha.csv', 'ProduccionDePapa.csv'],
+      description: 'Datos de producción y estimaciones'
+    },
+    { 
+      id: 'quimicos', 
+      label: 'Control Químico', 
+      files: ['ControlQuimico.csv'],
+      description: 'Información de control químico'
+    },
+    { 
+      id: 'limitantes', 
+      label: 'Limitantes', 
+      files: ['LimitantesCultivoPapa.csv'],
+      description: 'Datos de factores limitantes'
+    }
+  ];
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ['xlsx', 'xls', 'csv'];
-    const fileType = file.name.split('.').pop().toLowerCase();
+    if (!selectedType) {
+      setError('Por favor seleccione un tipo de datos primero');
+      return;
+    }
 
-    if (!allowedTypes.includes(fileType)) {
-      setError('Tipo de archivo no permitido. Use Excel o CSV.');
+    const fileType = file.name.split('.').pop().toLowerCase();
+    if (fileType !== 'csv') {
+      setError('Solo se permiten archivos CSV para esta importación');
+      return;
+    }
+
+    // Verificar si el archivo corresponde al tipo seleccionado
+    const validFiles = fileTypes.find(type => type.id === selectedType)?.files || [];
+    if (!validFiles.includes(file.name)) {
+      setError(`Archivo no válido para el tipo ${selectedType}. Archivos permitidos: ${validFiles.join(', ')}`);
       return;
     }
 
     try {
       setError(null);
       setSuccess(false);
-      await uploadFile(file);
+      await uploadFile(file, selectedType);
       setSuccess(true);
       event.target.value = null;
     } catch (err) {
@@ -41,14 +86,34 @@ const DataUploader = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Cargar Datos</h1>
+      <h1 className="text-2xl font-bold">Importar Datos de Producción</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Subir Archivo</CardTitle>
+          <CardTitle>Subir Archivo CSV</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            <div className="w-full">
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccione el tipo de datos" />
+                </SelectTrigger>
+                <SelectContent>
+                  {fileTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedType && (
+                <p className="mt-2 text-sm text-gray-500">
+                  {fileTypes.find(t => t.id === selectedType)?.description}
+                </p>
+              )}
+            </div>
+
             <div className="flex items-center justify-center w-full">
               <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -57,16 +122,18 @@ const DataUploader = () => {
                     <span className="font-semibold">Clic para subir</span> o
                     arrastrar y soltar
                   </p>
-                  <p className="text-xs text-gray-500">
-                    XLSX, XLS, CSV (MAX. 5MB)
-                  </p>
+                  {selectedType && (
+                    <p className="text-xs text-gray-500">
+                      Archivos permitidos: {fileTypes.find(t => t.id === selectedType)?.files.join(', ')}
+                    </p>
+                  )}
                 </div>
                 <input
                   type="file"
                   className="hidden"
-                  accept=".xlsx,.xls,.csv"
+                  accept=".csv"
                   onChange={handleFileChange}
-                  disabled={loading}
+                  disabled={loading || !selectedType}
                 />
               </label>
             </div>

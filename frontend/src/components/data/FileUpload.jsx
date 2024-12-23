@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+// FileUpload.jsx
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { Alert } from '../ui/alert';
-import api from '../../components/services/Api';
+import api from '../services/Api';
 
 const FileUpload = () => {
   const { sidebarOpen } = useApp();
@@ -12,22 +13,42 @@ const FileUpload = () => {
   const [success, setSuccess] = useState(null);
   const [uploadHistory, setUploadHistory] = useState([]);
 
+  useEffect(() => {
+    fetchUploadHistory();
+  }, []);
+
+  const fetchUploadHistory = async () => {
+    try {
+      const response = await api.get('/upload/history');
+      setUploadHistory(response.data);
+    } catch (err) {
+      console.error('Error fetching upload history:', err);
+    }
+  };
+
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
-    if (selectedFile) {
-      const fileType = selectedFile.name.split('.').pop().toLowerCase();
-      if (!['xlsx', 'xls', 'csv'].includes(fileType)) {
-        setError('Solo se permiten archivos Excel (.xlsx, .xls) y CSV');
-        return;
-      }
-      setFile(selectedFile);
-      setError(null);
+    if (!selectedFile) return;
+
+    const fileType = selectedFile.name.split('.').pop().toLowerCase();
+    if (fileType !== 'csv') {
+      setError('Solo se permiten archivos CSV');
+      return;
     }
+
+    // Verificar si es el archivo correcto
+    if (selectedFile.name !== 'DatosDepurados.csv') {
+      setError('Por favor seleccione el archivo DatosDepurados.csv');
+      return;
+    }
+
+    setFile(selectedFile);
+    setError(null);
   };
 
   const handleUpload = async () => {
     if (!file) {
-      setError('Por favor selecciona un archivo');
+      setError('Por favor seleccione un archivo');
       return;
     }
 
@@ -37,26 +58,23 @@ const FileUpload = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.post('/upload/excel', formData, {
+      
+      const response = await api.post('/upload/csv', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
       setSuccess('Archivo procesado correctamente');
-      console.log('Upload response:', response.data);
+      await fetchUploadHistory();
       
-      // Actualizar historial
-      const historyResponse = await api.get('/upload/history');
-      setUploadHistory(historyResponse.data);
-      
-      // Limpiar el input
+      // Limpiar el formulario
       setFile(null);
       const fileInput = document.getElementById('file-input');
       if (fileInput) fileInput.value = '';
     } catch (err) {
       console.error('Error uploading file:', err);
-      setError(err.response?.data?.error || 'Error al procesar el archivo');
+      setError(err.response?.data?.details || err.response?.data?.error || 'Error al procesar el archivo');
     } finally {
       setLoading(false);
     }
@@ -65,9 +83,8 @@ const FileUpload = () => {
   return (
     <div className={`min-h-screen bg-gray-100 p-6 ${sidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Cargar Datos</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Importar Datos de Producción</h1>
 
-        {/* Upload Section */}
         <div className="rounded-lg bg-white p-6 shadow">
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
@@ -79,20 +96,21 @@ const FileUpload = () => {
                   <Upload className="mx-auto h-8 w-8 text-gray-400" />
                   <div className="text-sm text-gray-600">
                     <span className="font-medium text-blue-600 hover:underline">
-                      Selecciona un archivo
+                      Selecciona el archivo
                     </span>
                     {' '}o arrastra y suelta aquí
                   </div>
                   <p className="text-xs text-gray-500">
-                    Excel (.xlsx, .xls) o CSV
+                    Solo se permite el archivo: DatosDepurados.csv
                   </p>
                 </div>
                 <input
                   id="file-input"
                   type="file"
                   className="hidden"
-                  accept=".xlsx,.xls,.csv"
+                  accept=".csv"
                   onChange={handleFileChange}
+                  disabled={loading}
                 />
               </label>
 
@@ -134,7 +152,7 @@ const FileUpload = () => {
         {/* Upload History */}
         {uploadHistory.length > 0 && (
           <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="mb-4 text-lg font-semibold">Historial de Cargas</h2>
+            <h2 className="mb-4 text-lg font-semibold">Historial de Importaciones</h2>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -149,13 +167,16 @@ const FileUpload = () => {
                       Errores
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Fecha
+                      Estado
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Fecha de Carga
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {uploadHistory.map((upload, index) => (
-                    <tr key={index}>
+                    <tr key={index} className="hover:bg-gray-50">
                       <td className="whitespace-nowrap px-6 py-4">
                         {upload.filename}
                       </td>
@@ -166,7 +187,22 @@ const FileUpload = () => {
                         {upload.error_rows}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
-                        {new Date(upload.created_at).toLocaleString()}
+                        <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                          upload.error_rows > 0
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {upload.error_rows > 0 ? 'Con Errores' : 'Completado'}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        {new Date(upload.created_at).toLocaleString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </td>
                     </tr>
                   ))}
