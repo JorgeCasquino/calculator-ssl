@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const uploadController = require('../controllers/uploadController');
-const auth = require('../middleware/auth');
-const upload = require('../middleware/upload');
+const uploadMiddleware = require('../middleware/upload');
 
-router.use(auth);
-
-router.post('/excel', 
-  upload.single('file'),
-  uploadController.processExcelFile
+// Ruta para subir CSV
+router.post('/csv', 
+  uploadMiddleware,  // Usar el middleware modificado
+  uploadController.processFile
 );
 
 router.get('/history', uploadController.getUploadHistory);

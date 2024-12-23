@@ -1,22 +1,42 @@
-const XLSX = require('xlsx');
 const uploadService = require('../services/uploadService');
 
 const uploadController = {
-  processExcelFile: async (req, res) => {
+  processFile: async (req, res) => {
     try {
+      console.log('Procesando archivo:', req.file?.originalname);
+
       if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
+        return res.status(400).json({ 
+          error: 'No se ha proporcionado ningún archivo' 
+        });
       }
 
-      const workbook = XLSX.read(req.file.buffer);
-      const processedData = await uploadService.processExcelData(workbook);
+      const fileContent = req.file.buffer.toString('utf-8');
+      console.log('Contenido del archivo (primeras 100 chars):', 
+        fileContent.substring(0, 100));
+
+      const result = await uploadService.processData(fileContent);
       
-      res.json({
-        message: 'File processed successfully',
-        data: processedData
+      // Registrar la carga exitosa
+      await uploadService.recordUpload({
+        filename: req.file.originalname,
+        processedRows: result.processedRows,
+        errorRows: result.errorRows
       });
+
+      res.json({
+        success: true,
+        message: 'Archivo procesado correctamente',
+        ...result
+      });
+
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      console.error('Error detallado:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Error al procesar el archivo',
+        details: error.message
+      });
     }
   },
 
@@ -25,10 +45,13 @@ const uploadController = {
       const history = await uploadService.getUploadHistory();
       res.json(history);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      console.error('Error al obtener historial:', error);
+      res.status(500).json({
+        error: 'Error al obtener historial',
+        details: error.message
+      });
     }
   }
 };
-
 
 module.exports = uploadController;
