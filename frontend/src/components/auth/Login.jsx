@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Alert } from '../../components/ui/alert';
 
@@ -18,7 +18,7 @@ const Login = () => {
     try {
       const response = await login(credentials);
       console.log('Login exitoso:', response);
-      navigate('/'); // Cambiado de '/' a '/dashboard'
+      navigate('/dashboard'); // Cambiado de '/' a '/dashboard'
     } catch (err) {
       console.error('Error en login:', err);
       setError(
@@ -112,6 +112,11 @@ const Login = () => {
               )}
             </button>
           </form>
+          <div className="mt-4 text-center">
+            <Link to="/register" className="text-blue-600 hover:underline">
+              ¿No tienes una cuenta? Regístrate
+            </Link>
+          </div>
         </div>
       </div>
     </div>

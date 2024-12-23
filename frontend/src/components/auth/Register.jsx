@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Alert } from '../../components/ui/alert';
 
@@ -141,6 +141,11 @@ const Register = () => {
               {loading ? 'Registrando...' : 'Registrarse'}
             </button>
           </form>
+          <div className="mt-4 text-center">
+            <Link to="/login" className="text-blue-600 hover:underline">
+              ¿Ya tienes una cuenta? Inicia sesión
+            </Link>
+          </div>
         </div>
       </div>
     </div>
