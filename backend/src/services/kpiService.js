@@ -87,13 +87,95 @@ const kpiService = {
     };
   },
 
-  getHistogramData: async () => {
-    const [defects] = await pool.execute(`
-      SELECT date, type, process
-      FROM defects
-      ORDER BY date
-    `);
+  getHistogramData: async (req, res) => {
+    try {
+        const { pollutant, startDate, endDate, groupBy } = req.query;
 
-    return defects;
-  }
+        // Validar que todos los parámetros estén presentes
+        if (!pollutant || !startDate || !endDate || !groupBy) {
+            return res.status(400).json({ error: 'Parámetros incompletos' });
+        }
+
+        // Validar que el contaminante sea válido
+        const validPollutants = ['pm10', 'pm2_5', 'no2'];
+        if (!validPollutants.includes(pollutant)) {
+            return res.status(400).json({ error: 'Contaminante no válido' });
+        }
+
+        let query, params;
+
+        if (groupBy === 'year') {
+            // Consulta para agrupar por año
+            query = `
+            SELECT 
+              YEAR(fecha) as year,
+              COUNT(*) as frequency
+            FROM air_quality_data
+            WHERE 
+              fecha BETWEEN ? AND ?
+              AND ${pollutant} IS NOT NULL
+            GROUP BY YEAR(fecha)
+            ORDER BY year
+            `;
+            params = [startDate, endDate];
+        } else {
+            // Consulta para agrupar por mes
+            query = `
+            SELECT 
+              YEAR(fecha) as year,
+              MONTH(fecha) as month,
+              COUNT(*) as frequency
+            FROM air_quality_data
+            WHERE 
+              fecha BETWEEN ? AND ?
+              AND ${pollutant} IS NOT NULL
+            GROUP BY YEAR(fecha), MONTH(fecha)
+            ORDER BY year, month
+            `;
+            params = [startDate, endDate];
+        }
+
+        const [rows] = await pool.execute(query, params);
+
+        if (groupBy === 'year') {
+            // Para agrupación por año
+            const completeData = rows.map(row => ({
+                year: row.year,
+                frequency: row.frequency
+            }));
+
+            res.json({
+                groupBy: 'year',
+                data: completeData
+            });
+        } else {
+            // Para agrupación por mes
+            // Obtener el año de startDate para mantener la consistencia
+            const selectedYear = new Date(startDate).getFullYear();
+
+            // Generar datos completos para todos los meses
+            const completeData = Array.from({ length: 12 }, (_, i) => {
+                const monthData = rows.find(row => row.month === i + 1);
+                return {
+                    month: i + 1,
+                    frequency: monthData ? monthData.frequency : 0,
+                    monthName: new Date(selectedYear, i).toLocaleString('es-ES', { month: 'long' })
+                };
+            });
+
+            res.json({
+                year: selectedYear,
+                groupBy: 'month',
+                data: completeData
+            });
+        }
+
+    } catch (error) {
+        console.error('Error in getHistogramData:', error);
+        res.status(500).json({
+            error: 'Error al obtener datos del histograma',
+            details: error.message
+        });
+    }
+},
 };
