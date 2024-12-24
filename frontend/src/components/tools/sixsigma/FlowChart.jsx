@@ -1,87 +1,147 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import ReactFlow, {
   Controls,
   Background,
   useNodesState,
   useEdgesState,
-  addEdge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Button } from '../../../components/ui/button';
 
-const nodeTypes = {
-  start: {
-    style: { background: '#4CAF50', color: 'white' },
+const initialNodes = [
+  {
+    id: 'A',
+    type: 'input',
+    data: { label: 'Inicio' },
+    position: { x: 250, y: 0 },
+    style: { 
+      background: '#4CAF50', 
+      color: 'white', 
+      borderRadius: '25px',
+      width: 150,
+      padding: '10px'
+    }
   },
-  process: {
-    style: { background: '#2196F3', color: 'white' },
+  {
+    id: 'B',
+    data: { label: 'Leer datos de calidad\ndel aire' },
+    position: { x: 250, y: 80 },
+    style: { 
+      background: '#2196F3', 
+      color: 'white',
+      width: 150,
+      padding: '10px'
+    }
   },
-  decision: {
-    style: { background: '#FFC107' },
+  {
+    id: 'C',
+    data: { label: 'Preprocesar datos' },
+    position: { x: 250, y: 160 },
+    style: { 
+      background: '#2196F3', 
+      color: 'white',
+      width: 150,
+      padding: '10px'
+    }
   },
-  end: {
-    style: { background: '#F44336', color: 'white' },
+  {
+    id: 'D',
+    data: { label: '¿Datos válidos?' },
+    position: { x: 250, y: 240 },
+    style: { 
+      background: '#FFC107',
+      width: 150,
+      padding: '10px',
+      textAlign: 'center'
+    }
   },
-};
+  {
+    id: 'G',
+    data: { label: 'Descartar datos\ninválidos' },
+    position: { x: 450, y: 240 },
+    style: { 
+      background: '#FF5722', 
+      color: 'white',
+      width: 150,
+      padding: '10px'
+    }
+  },
+  {
+    id: 'E',
+    data: { label: 'Generar análisis de\ncalidad del aire' },
+    position: { x: 250, y: 320 },
+    style: { 
+      background: '#2196F3', 
+      color: 'white',
+      width: 150,
+      padding: '10px'
+    }
+  },
+  {
+    id: 'F',
+    data: { label: 'Mostrar resultados' },
+    position: { x: 250, y: 400 },
+    style: { 
+      background: '#2196F3', 
+      color: 'white',
+      width: 150,
+      padding: '10px'
+    }
+  },
+  {
+    id: 'H',
+    type: 'output',
+    data: { label: 'Fin' },
+    position: { x: 250, y: 480 },
+    style: { 
+      background: '#F44336', 
+      color: 'white', 
+      borderRadius: '25px',
+      width: 150,
+      padding: '10px'
+    }
+  }
+];
+
+const initialEdges = [
+  { id: 'A-B', source: 'A', target: 'B' },
+  { id: 'B-C', source: 'B', target: 'C' },
+  { 
+    id: 'C-D', 
+    source: 'C', 
+    target: 'D',
+    type: 'smoothstep'
+  },
+  { 
+    id: 'D-G', 
+    source: 'D', 
+    target: 'G', 
+    label: 'No',
+    type: 'smoothstep'
+  },
+  { 
+    id: 'D-E', 
+    source: 'D', 
+    target: 'E',
+    label: 'Sí',
+    type: 'smoothstep'
+  },
+  { id: 'E-F', source: 'E', target: 'F' },
+  { id: 'F-H', source: 'F', target: 'H' }
+];
 
 const FlowChart = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [nodeName, setNodeName] = useState('');
-  const [nodeType, setNodeType] = useState('process');
-
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
-
-  const addNode = () => {
-    if (nodeName) {
-      const newNode = {
-        id: Date.now().toString(),
-        type: nodeType,
-        data: { label: nodeName },
-        position: { x: 100, y: 100 },
-      };
-      setNodes((nodes) => [...nodes, newNode]);
-      setNodeName('');
-    }
-  };
+  const [nodes] = useNodesState(initialNodes);
+  const [edges] = useEdgesState(initialEdges);
 
   return (
     <div className="space-y-6 p-6">
-      <h2 className="text-xl font-bold">Diagrama de Flujo</h2>
-
-      <div className="mb-4 flex gap-4">
-        <input
-          type="text"
-          value={nodeName}
-          onChange={(e) => setNodeName(e.target.value)}
-          className="flex-1 rounded border p-2"
-          placeholder="Nombre del nodo..."
-        />
-        <select
-          value={nodeType}
-          onChange={(e) => setNodeType(e.target.value)}
-          className="rounded border p-2"
-        >
-          <option value="start">Inicio</option>
-          <option value="process">Proceso</option>
-          <option value="decision">Decisión</option>
-          <option value="end">Fin</option>
-        </select>
-        <Button onClick={addNode}>Agregar Nodo</Button>
-      </div>
-
+      <h2 className="text-xl font-bold">Diagrama de Flujo - Proceso de Calidad del Aire</h2>
       <div className="h-[600px] w-full border">
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
         >
           <Background />
           <Controls />
@@ -90,4 +150,5 @@ const FlowChart = () => {
     </div>
   );
 };
+
 export default FlowChart;
