@@ -143,6 +143,34 @@ const kpiController = {
             });
         }
     },
+    saveMeasurement: async (req, res) => {
+        try {
+            const { station, pollutant, value, date, threshold } = req.body;
+            
+            const [result] = await pool.execute(
+                `INSERT INTO measurements_check (station, pollutant, value, date, exceeds_threshold) 
+                 VALUES (?, ?, ?, ?, ?)`,
+                [
+                    station, 
+                    pollutant, 
+                    parseFloat(value), 
+                    date, 
+                    parseFloat(value) > threshold
+                ]
+            );
+    
+            res.json({ 
+                success: true, 
+                id: result.insertId 
+            });
+        } catch (error) {
+            console.error('Error al guardar medición:', error);
+            res.status(500).json({ 
+                error: 'Error al guardar la medición',
+                details: error.message 
+            });
+        }
+    },
 
     getHistogramData: async (req, res) => {
         try {

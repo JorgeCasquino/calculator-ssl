@@ -14,5 +14,6 @@ router.get('/pareto', kpiController.getParetoData);
 router.get('/control-chart', kpiController.getControlChartData);
 router.get('/histogram', kpiController.getHistogramData);
 router.get('/scatter-plot', kpiController.getScatterPlotData);
+router.post('/saveMeasurement', kpiController.saveMeasurement);
 
 module.exports = router;

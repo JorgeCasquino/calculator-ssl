@@ -96,28 +96,28 @@ const ControlChart = ({ data, onPollutantChange }) => {
 
             {/* Línea de datos */}
             <Line
-  type="monotone"
-  dataKey="value"
-  stroke="#8884d8"
-  name="Valor"
-  dot={(props) => {
-    const { payload, cx, cy } = props;
-    let fill = '#8884d8';
-    if (payload && payload.status === 'out_of_control') fill = 'red';
-    else if (payload && payload.status === 'warning') fill = 'orange';
-    
-    return (
-      <circle 
-        cx={cx} 
-        cy={cy} 
-        r={5} 
-        fill={fill} 
-        stroke="#fff" 
-        strokeWidth={2} 
-      />
-    );
-  }}
-/>
+              type="monotone"
+              dataKey="value"
+              stroke="#8884d8"
+              name="Valor"
+              dot={(props) => {
+                const { payload, cx, cy } = props;
+                let fill = '#8884d8';
+                if (payload && payload.status === 'out_of_control') fill = 'red';
+                else if (payload && payload.status === 'warning') fill = 'orange';
+                
+                return (
+                  <circle 
+                    cx={cx} 
+                    cy={cy} 
+                    r={5} 
+                    fill={fill} 
+                    stroke="#fff" 
+                    strokeWidth={2} 
+                  />
+                );
+              }}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
