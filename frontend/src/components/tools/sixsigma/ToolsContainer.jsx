@@ -43,7 +43,9 @@ const ToolsContainer = () => {
       id: 'scatter-plot',
       title: 'Diagrama de Dispersión',
       component: ScatterPlot,
-      data: analysisData?.scatterData
+      data: analysisData?.scatterData,
+      xLabel: 'PM10',
+      yLabel: 'PM2.5'
     },
     {
       id: 'check-sheet',
@@ -55,6 +57,7 @@ const ToolsContainer = () => {
       title: 'Diagrama de Flujo',
       component: FlowChart,
     },
+    
   ];
 
   const selectedTool = tools.find((tool) => tool.id === currentTool);

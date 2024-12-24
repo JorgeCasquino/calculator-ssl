@@ -168,30 +168,60 @@ const kpiController = {
     },
 
     getScatterPlotData: async (req, res) => {
-        try {
-            const [rows] = await pool.execute(`
+    const { yPollutant = 'pm10' } = req.query;
+
+    try {
+        const [rows] = await pool.execute(`
             SELECT 
-              pm10 as x,
-              pm2_5 as y
+                MONTH(fecha) as month,
+                AVG(${yPollutant}) as pollutant_avg,
+                MIN(${yPollutant}) as min_value,
+                MAX(${yPollutant}) as max_value,
+                COUNT(*) as data_points
             FROM air_quality_data
-            WHERE pm10 IS NOT NULL 
-            AND pm2_5 IS NOT NULL
-          `);
+            WHERE 
+                ${yPollutant} IS NOT NULL 
+                AND ${yPollutant} > 0
+            GROUP BY MONTH(fecha)
+            ORDER BY month
+        `);
 
-            const formattedRows = rows.map(row => ({
-                x: row.x !== null && !isNaN(row.x) ? Number(row.x).toFixed(2) : null,
-                y: row.y !== null && !isNaN(row.y) ? Number(row.y).toFixed(2) : null
-            }));
+        const monthNames = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
 
-            res.json(formattedRows);
-        } catch (error) {
-            console.error('Error in getScatterPlotData:', error);
-            res.status(500).json({
-                error: 'Error al obtener datos del diagrama de dispersión',
-                details: error.message
-            });
-        }
+        const formattedRows = rows.map(row => ({
+            x: row.month,
+            y: Number(row.pollutant_avg).toFixed(2),
+            monthName: monthNames[row.month - 1],
+            minValue: Number(row.min_value).toFixed(2),
+            maxValue: Number(row.max_value).toFixed(2),
+            dataPoints: row.data_points
+        }));
+
+        // Asegurar que todos los meses estén representados
+        const completeData = Array.from({length: 12}, (_, i) => {
+            const monthData = formattedRows.find(row => row.x === i + 1);
+            return monthData || {
+                x: i + 1,
+                y: null,
+                monthName: monthNames[i],
+                minValue: null,
+                maxValue: null,
+                dataPoints: 0
+            };
+        });
+
+        res.json(completeData);
+    } catch (error) {
+        console.error('Error in getScatterPlotData:', error);
+        res.status(500).json({
+            error: 'Error al obtener datos del diagrama de dispersión',
+            details: error.message
+        });
     }
+}
 };
 
 module.exports = kpiController;
