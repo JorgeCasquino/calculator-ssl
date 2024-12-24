@@ -50,9 +50,13 @@ const ReportGenerator = () => {
                     setReportConfig({ ...reportConfig, type: e.target.value })
                   }
                 >
-                  <option value="defects">Defectos</option>
-                  <option value="kpi">KPIs</option>
-                  <option value="process">Procesos</option>
+                  <option value="Causa Efecto">Causa Efecto</option>
+                  <option value="Diagrama de Pareto">Diagrama de Pareto</option>
+                  <option value="Grafico de control">Grafico de control</option>
+                  <option value="Histograma">Histograma</option>
+                  <option value="Diagrama de Dispersión">Diagrama de Dispersión</option>
+                  <option value="Hoja de Verificación">Hoja de Verificación</option>
+                  <option value="Diagrama de Flujo">Diagrama de Flujo</option>
                 </Select>
               </div>
 
