@@ -73,27 +73,68 @@ const kpiController = {
     },
 
     getControlChartData: async (req, res) => {
+        const { pollutant = 'pm10' } = req.query;
+    
         try {
             const [rows] = await pool.execute(`
-            SELECT 
-              DATE_FORMAT(fecha, '%Y-%m') as date,
-              AVG(pm10) as avg_pm10,
-              AVG(pm2_5) as avg_pm2_5,
-              AVG(no2) as avg_no2
-            FROM air_quality_data
-            WHERE pm10 IS NOT NULL AND pm2_5 IS NOT NULL AND no2 IS NOT NULL
-            GROUP BY date
-            ORDER BY date
-          `);
-
-            const formattedRows = rows.map(row => ({
-                date: row.date,
-                avg_pm10: row.avg_pm10 !== null && !isNaN(row.avg_pm10) ? Number(row.avg_pm10).toFixed(2) : null,
-                avg_pm2_5: row.avg_pm2_5 !== null && !isNaN(row.avg_pm2_5) ? Number(row.avg_pm2_5).toFixed(2) : null,
-                avg_no2: row.avg_no2 !== null && !isNaN(row.avg_no2) ? Number(row.avg_no2).toFixed(2) : null
-            }));
-
-            res.json(formattedRows);
+                SELECT 
+                    DATE_FORMAT(fecha, '%Y-%m') as date,
+                    AVG(${pollutant}) as value
+                FROM air_quality_data
+                WHERE ${pollutant} IS NOT NULL
+                GROUP BY date
+                ORDER BY date
+            `);
+    
+            // Convertir valores a números
+            const values = rows.map(row => Number(row.value));
+    
+            // Calcular media
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    
+            // Calcular desviación estándar
+            const variance = values.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / values.length;
+            const stdDev = Math.sqrt(variance);
+    
+            // Calcular límites de control (3-sigma)
+            const ucl = mean + 3 * stdDev;
+            const lcl = mean - 3 * stdDev;
+    
+            // Calcular límites de advertencia (2-sigma)
+            const upperWarning = mean + 2 * stdDev;
+            const lowerWarning = mean - 2 * stdDev;
+    
+            // Marcar puntos fuera de los límites
+            const processedValues = rows.map(row => {
+                const value = Number(row.value);
+                let status = 'normal';
+    
+                if (value > ucl || value < lcl) {
+                    status = 'out_of_control';
+                } else if (
+                    (value > upperWarning && value <= ucl) || 
+                    (value < lowerWarning && value >= lcl)
+                ) {
+                    status = 'warning';
+                }
+    
+                return {
+                    date: row.date,
+                    value: Number(value.toFixed(2)),
+                    status
+                };
+            });
+    
+            res.json({
+                values: processedValues,
+                limits: {
+                    mean: Number(mean.toFixed(2)),
+                    ucl: Number(ucl.toFixed(2)),
+                    lcl: Number(lcl.toFixed(2)),
+                    upperWarning: Number(upperWarning.toFixed(2)),
+                    lowerWarning: Number(lowerWarning.toFixed(2))
+                }
+            });
         } catch (error) {
             console.error('Error in getControlChartData:', error);
             res.status(500).json({
